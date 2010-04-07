@@ -1,0 +1,3 @@
+Initial upload of the RML markup generator. It's early days yet, so the only tags available are element types which would have an id, a class, a style or content. 
+
+Next revision will have link and script tags (though any tag is currently available if youjust call RML.tag(/*stuff*/). This however is admittedly more trouble than it would be worth. 

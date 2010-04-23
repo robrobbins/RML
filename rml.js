@@ -2,71 +2,64 @@
 //functions to generate HTML markup
 
 var RML = {
+    //items which should NOT appear in the
+    //attributes of a tag. Items set to true
+    //will be excluded
+    filter: {
+        'content': true
+    },
+
+    //absract out the string replacement bit...
+    rsub: function(k,v) {
+        var str = ' %1="%2"';
+        return str.replace('%1', k).replace('%2', v);
+    },
+
+    //convenience method for hasOwnProperty
+    //@param obj is the object in question
+    //@param key is the key to look for
+    has: function(obj, key) {
+        return obj && obj.hasOwnProperty && obj.hasOwnProperty(key);
+    },
+    
     //tag names are methods appended to the RML object
     //which will return markup
-
-    //@param arg will contain the properties and content of the
-    //desired tag, step through it and modify the tstr[] to match
+    //@param arg will contain the attributes and content of the
+    //desired tag, step through it and modify the tstr to match
     //@param t is the actual tag name, this allows for custom tags too
     //@param isClosed will be a bool only passed with self closing tags i.e.('br','',true)
-    tag: function(t,arg, isClosed) {
-        var props = [' id="$id"', ' class="$class"', ' style="$style"',' type="$type"',' name="$name"',
-            ' value="$value"',' src="$src"', ' rows="$rows"', ' cols="$cols"',' href="$href"', '$content'], //INDEX!
-        prop,tstr = '<' + t, _content = false;
+    tag: function(t, arg, isClosed) {
+        var has = RML.has,
+        filter = RML.filter,
+        rsub = RML.rsub,
+        tstr = '<' + t,
+        content = false,
+        prop;
+
         //arg can be an object or just a string/number:
         if (typeof (arg) === 'string' || typeof (arg) === 'number' ||
             typeof(arg) === 'undefined') {
-            return (!isClosed) ? '<' + t + '>' + arg + '</' + t + '>' : 
+            return (!isClosed) ? '<' + t + '>' + arg + '</' + t + '>' :
                 '<' + t + ' />';
         }
-        else if (typeof (arg) === 'object') {
+ 
+        else if (typeof (arg) === 'object') { //could typecheck further...
+            //override bool for content if present
+            if (RML.has(arg, 'content')) {content = true;}
+            //assemble the properties section of the tag
             for (prop in arg) {
-                if (arg.hasOwnProperty(prop)) {
-                    switch (prop) {
-                        case 'id':
-                            tstr += props[0].replace('$id', arg[prop]);
-                            break;
-                        case 'class':
-                            tstr += props[1].replace('$class', arg[prop]);
-                            break;
-                        case 'style':
-                            tstr += props[2].replace('$style', arg[prop]);
-                            break;
-                        case 'type':
-                            tstr += props[3].replace('$type', arg[prop]);
-                            break;
-                        case 'name':
-                            tstr += props[4].replace('$name', arg[prop]);
-                            break;
-                        case 'value':
-                            tstr += props[5].replace('$value', arg[prop]);
-                            break;
-                        case 'src':
-                            tstr += props[6].replace('$src', arg[prop]);
-                            break;
-                        case 'rows':
-                            tstr += props[7].replace('$rows', arg[prop]);
-                            break;
-                        case 'cols':
-                            tstr += props[8].replace('$cols', arg[prop]);
-                            break;
-                        case 'href':
-                            tstr += props[9].replace('$href', arg[prop]);
-                            break;    
-                        case 'content':
-                            props[10] = props[10].replace('$content', arg[prop]);
-                            _content = true;
-                            break;
-                    }
-                } //end hasownprop
-            } //end for-in
+                if(has(arg, prop) && !filter[prop]) {
+                    tstr += rsub(prop, arg[prop]);
+                }
+            }
+
             if(!isClosed) {
                 tstr +='>';
-                if(_content) {tstr += props[10];}
+                if(content) {tstr += arg.content;}
                 tstr += '</' + t + '>';
             }
             if(isClosed) {
-                if(_content) {tstr += props[10];}
+                if(content) {tstr += arg.content;}
                 tstr += ' />';
             }
         } //end else if object
@@ -78,7 +71,7 @@ var RML = {
         return RML.tag('a', arg);
     },
     br: function(arg) {
-        return RML.tag('br', arg, true)
+        return RML.tag('br', arg, true);
     },
     div: function(arg) {
         return RML.tag('div', arg);
@@ -96,7 +89,7 @@ var RML = {
         return RML.tag('h4', arg);
     },
     hr: function(arg) {
-        return RML.tag('hr', arg, true)
+        return RML.tag('hr', arg, true);
     },
     img: function(arg) {
         return RML.tag('img', arg);

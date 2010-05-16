@@ -81,10 +81,7 @@ var RML = (function() {
                 }
             } //end else if object
             return tstr;
-        } //end tag
-        /*a: function(arg) {
-            return RML.tag('a', arg);
-        },*/  
+        }
     };
 }());
 //dynamically append convenience methods using tags object
@@ -92,12 +89,10 @@ var RML = (function() {
     var has = RML.has,
     tags = RML.tags,
     prop;
-    
     for(prop in tags) {
         if (has(tags, prop)) {
             RML[prop] = (function(t) {
                 return function(arg) {
-                    //console.log(t + " " + arg);
                     return this.tag(t, arg, this.tags[t]);
                 };
             }(prop));

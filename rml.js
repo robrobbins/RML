@@ -4,28 +4,28 @@ var RML = (function() {
     return {
         //list of tagnames, autoclose bool
         tags: {
-            'a': false, 
-            'br': true, 
-            'div': false, 
-            'h1': false, 
-            'h2': false, 
-            'h3': false, 
-            'h4': false, 
-            'hr': true, 
-            'img': false, 
-            'input': true, 
+            'a': false,
+            'br': true,
+            'div': false,
+            'h1': false,
+            'h2': false,
+            'h3': false,
+            'h4': false,
+            'hr': true,
+            'img': false,
+            'input': true,
             'li': false,
-            'link': true, 
-            'p': false, 
-            'script': false, 
-            'span': false, 
+            'link': true,
+            'p': false,
+            'script': false,
+            'span': false,
             'table': false,
-            'tbody': false, 
-            'td': false, 
-            'textarea': false, 
-            'th': false, 
+            'tbody': false,
+            'td': false,
+            'textarea': false,
+            'th': false,
             'thead': false,
-            'tr': false, 
+            'tr': false,
             'ul': false
         },
         //items which should NOT appear in the
@@ -52,35 +52,51 @@ var RML = (function() {
         //@param t is the actual tag name, this allows for custom tags too
         //@param isClosed will be a bool only passed with self closing tags i.e.('br','',true)
         tag: function(t, arg, isClosed) {
-            var tstr = '<' + t,
+            var tstr = ['<', t],
             content = false,
             prop;
             //arg can be an object or just a string/number:
-            if (typeof (arg) === 'string' || typeof (arg) === 'number' ||
+            if (typeof(arg) === 'string' || typeof (arg) === 'number' ||
                 typeof(arg) === 'undefined') {
-                    return (!isClosed) ? '<' + t + '>' + arg + '</' + t + '>' :
-                    '<' + t + ' />';
+                    if (!isClosed) {
+                        tstr.push('>', arg, '</', t, '>');
+                        return tstr.join('');
+                    }
+                    tstr.push('/>');
+                    return tstr.join('');
             }
-            else if (typeof (arg) === 'object') { //could typecheck further...
+            else if (typeof(arg) === 'function') {
+                tstr.push('>', arg(), '</', t, '>');
+                return tstr.join('');
+            }
+            else if (typeof(arg) === 'object') { //could typecheck further...
                 //override bool for content if present
                 if (this.has(arg, 'content')) {content = true;}
                 //assemble the properties section of the tag
                 for (prop in arg) {
                     if(this.has(arg, prop) && !this.filter[prop]) {
-                        tstr += this.rsub(prop, arg[prop]);
+                        tstr.push(this.rsub(prop, arg[prop]));
                     }
                 }
                 if(!isClosed) {
-                    tstr +='>';
-                    if(content) {tstr += arg.content;}
-                    tstr += '</' + t + '>';
+                    tstr.push('>');
+                    if(content) {
+                        //content could be a function which returns a string
+                        if (typeof(content) === 'function') {
+                            tstr.push(arg.content());
+                        }
+                        else {
+                            tstr.push(arg.content);
+                        }
+                    }
+                    tstr.push('</', t, '>');
                 }
                 if(isClosed) {
-                    if(content) {tstr += arg.content;}
-                    tstr += ' />';
+                    //will never need content
+                    tstr.push('/>');
                 }
             } //end else if object
-            return tstr;
+            return tstr.join('');
         }
     };
 }());
@@ -98,4 +114,4 @@ var RML = (function() {
             }(prop));
         }
     }
-}()); 
+}());

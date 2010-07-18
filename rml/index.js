@@ -1,4 +1,10 @@
-/*global console alert window*/
+/*global console alert window exports*/
+
+//commonJS version of the RML markup generating library
+exports.name = 'Righteous Markup Lever';
+exports.summary = 'Returns HTML markup via methods appended to rml';
+exports.requires = [];
+
 var RML = (function() {
     //vars...
     var SLICE = Array.prototype.slice;
@@ -118,3 +124,7 @@ var RML = (function() {
         }
     }
 }());
+//transfer RML to exports
+for (prop in RML) {
+    exports[prop] = RML[prop];
+}

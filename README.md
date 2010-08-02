@@ -118,19 +118,39 @@ To abstract out the common pattern of joining string arrays or using `+=`, you c
 
 ### The Tags Object
 
-RML dynamically creates tags based on the key-value pairs in the 'tags' object. 
+RML dynamically creates convenience methods for tags based on the key-value 
+pairs in the 'tags' object. 
  
 	tags: {
 		'a': 0,
 		'br': 1
 	}
 
-At run-time these are converted into convenience methods for each property defined. 
-For example the `br: true` above is appended automatically to the RML object as: 
+At run-time these are converted into functions for each property defined. 
+For example the `br: 1` above is appended automatically to the RML object as: 
 
 	br: function(arg) {
 		this.tag('br', arg, 1);
 	}
+	
+That `int` value determines the type of tag rendered. Default with a closing tag, 
+`<foo></foo>`, self-closing, `<foo />`, or open, `<foo>`. More on that in a moment.
+	
+### The tag() Method
+
+This is the centerpiece of the RML library, and only about 6 lines of code. 
+Looking at the source, you'll notice the tag() method takes 4 arguments:
+
+	tag: function(t, arg, tt, dl) {
+        //code...
+    }
+
+1. `t` is the tag name itself. 'div', 'span', 'canvas' etc...
+2. `arg` is the deciding factor on which function tag() passes control flow to. 
+Strings, numbers, arrays and objects are all useful types for `arg`
+3. `tt` is the type of tag: closed, self-closing, or open
+4. `dl` is an optional argument which will be used as a seperator when an array is passed
+as the `content` of a tag. See the `Arrays as Content` section above
 
 #### Custom, XML, or HTML5 tags
 

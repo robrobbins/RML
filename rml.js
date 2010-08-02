@@ -123,8 +123,8 @@ var RML = (function() {
         //desired tag, step through it and modify the tstr to match
         //@param t is the actual tag name, this allows for custom tags too
         //@param tt is an int representing tag type:
-        //undefined or 0 will create a tag with a closing tag, <a></a>
-        //1 for a self closing tag, <br /> **these are not checked for content
+        //falsy values (0 for ex.) will create a tag with a closing tag, <a></a>
+        //1 (or true) for a self closing tag, <br /> **these are not checked for content
         //2 for the open tag form <foo> **also not checked for content
         //dl is an optional arg which can provide a delimiter for content arrays
         tag: function(t, arg, tt, dl) {

@@ -66,7 +66,7 @@ fetched and parsed asynchronously.
 
 ##### Arrays as Content
 
-You can have an array as content in either a tag with no attributes:
+You can have an array as content for a tag. Here, with no attributes:
 
 	RML.div(['I', 'am', 'an', 'array']);
 	
@@ -83,13 +83,13 @@ you wish:
 	
 	=> <div>I am an array</div>
 	
-Or, 
+Dashes:, 
 
 	RML.tag('div', ['I', 'am', 'an', 'array'], 0, '-');
 	
 	=> <div>I-am-an-array</div>
 
-Also, the `content` attribute of a config object may contain an array. The same
+And here, in the `content` attribute of a config object. The same
 procedure as above would apply for rendering it how you wanted. With commas for 
 example:
 

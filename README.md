@@ -1,8 +1,41 @@
 # The Righteous Markup Lever
 
-*v1.5.0* 
+*v1.6.0* 
 ## A Quick and Dirty Tour
 
+### Micro-Templating Added
+
+On a recent project I hacked in  an implementation of [John Resig's Micro Templates](http://ejohn.org/blog/javascript-micro-templating/)
+to RML for the places where a more tradional template was a better tool. This version has the [Rick Strahl](http://www.west-wind.com/Weblog/default.aspx) and
+team [Underscore.js](http://github.com/documentcloud/underscore/) tweaks, along with the ability to pass in an array as the first argument.
+
+#### RML.template
+
+	var tpl = RML.template([
+		'<div id="<?= id ?>">',
+			'<ul class="<?= class ?>">',
+				'<? for (var i=0; i<items.length; i++) { ?>',
+					'<li><?= items[i] ?></li>',
+				'<? } ?>',
+			'</ul>',
+		'</div>'
+	]);
+	
+'Compiles' the template into a callable function. Now you can pass it a data object:
+
+	tpl({id: 'foo', class: 'bar', items: ['spam', 'eggs']});
+	
+	=> <div id="foo"><ul class="bar"><li>spam</li><li>eggs</li></ul></div>
+	
+Of course you could just do a 'one-shot' template by passing the data object along as the second argument to `RML.template`:
+
+	RML.template('<span id="<?= id ?>">Hello Span!</span>', {id: 'myID'});
+	
+	=> <span id="myID">Hello Span!</span>
+
+I'm using `<? ?>` as the delimiters but you can change that in the `templatePrefs` object 
+(just be sure to update the `re` to match).
+ 
 ### Render A Tag, Any Tag...
 
 Most common HTML tags have convenience methods which can be called like so:

@@ -6,7 +6,8 @@ var RML = (function() {
     ARRAY = '[object Array]',
     FUNCTION = '[object Function]',
     OBJECT = '[object Object]',
-    //factor out some redundant code, function is passed the string array, 
+    REGESCAPE = function(s) {return s.replace(/([.*+?^${}()|[\]\/\\])/g, '\\$1');},
+    //function is passed the string array
     //pre-join, a string arg, and the tag type (0,1,2)
     factory = function(tstr, arg, tt, dl) {
         //the original tag is in the tstr
@@ -37,6 +38,7 @@ var RML = (function() {
         //override bool for content if present
         if (that.has(arg, 'content')) {content = true;}
         //assemble the properties section of the tag
+        //TODO avoid the for...in?
         for (prop in arg) {
             if(that.has(arg, prop) && !that.filter[prop]) {
                 tstr.push(that.rsub(prop, arg[prop]));
@@ -71,6 +73,11 @@ var RML = (function() {
                 tstr.push('</', t, '>');
         }
         return tstr.join('');
+    },
+    templatePrefs = {
+        start : '<?',
+        end : '?>',
+        re : /<\?=(.+?)\?>/g
     };
     return {
         //shortcut methods to append to RML
@@ -135,6 +142,31 @@ var RML = (function() {
             //hand off to appropriate function
             return TOSTRING.call(arg) !== OBJECT ? factory(tstr, arg, tt, dl) :
                 handleObj(tstr, arg, tt, this, dl);
+        },
+        // inspiration: [John Resig, Rick Strahl, Underscore.js]
+        template: function(tpl, data) {
+            // str passed in as an array? I do...
+            var str = TOSTRING.call(tpl) === ARRAY ? tpl.join('') : tpl,
+            pref = templatePrefs,
+            _em = ["'(?=[^",pref.end.substr(0, 1),"]*",REGESCAPE(pref.end),")"].join(''),
+            em = new RegExp(_em,"g"),
+            _fn = [
+                'var p=[],print=function(){p.push.apply(p,arguments);};',
+                'with(obj||{}){p.push(\'',
+                str.replace(/\r/g, '\\r')
+                .replace(/\n/g, '\\n')
+                .replace(/\t/g, '\\t')
+                .replace(em,"✄")
+                .split("'").join("\\'")
+                .split("✄").join("'")
+                .replace(pref.re, "',$1,'")
+                .split(pref.start).join("');")
+                .split(pref.end).join("p.push('"),
+                "');}return p.join('');"
+            ],    
+            fn = new Function('obj', _fn.join(''));
+            // you can return a compiled tpl or a 'one-shot' str
+            return data ? fn(data) : fn;
         }
     };
 }());

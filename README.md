@@ -53,7 +53,7 @@ Or if you like to write the HTML snippet yourself:
 	
 Of course you could just do a 'one-shot' template by passing the data object along as the second argument to `RML.template`:
 
-	RML.template('<span id="<?= id ?>">Hello Span!</span>', {id: 'myID'});
+	RML.template('<span id="${id}">Hello Span!</span>', {id: 'myID'});
 	
 	=> <span id="myID">Hello Span!</span>
 

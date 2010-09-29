@@ -1,29 +1,53 @@
 # The Righteous Markup Lever
 
-*v1.6.0* 
+*v2.0* 
 ## A Quick and Dirty Tour
 
-### Micro-Templating Added
+### Templating Added
 
-On a recent project I hacked in  an implementation of [John Resig's Micro Templates](http://ejohn.org/blog/javascript-micro-templating/)
-to RML for the places where a more tradional template was a better tool. This version has the [Rick Strahl](http://www.west-wind.com/Weblog/default.aspx) and
-team [Underscore.js](http://github.com/documentcloud/underscore/) tweaks, along with the ability to pass in an array as the first argument.
+I've hacked in an implementation of a variable replacement algorithm for a couple of reasons:
 
-#### RML.template
+1. The ability to 'compile' a template and 'cache' it will obviously increase performance where
+an HTML fragment is going to be re-used many times
+2. We get a free strSub() method which can be handy for replacing variables in content strings which may 
+be unknown until run-time.
+ 
 
-	var tpl = RML.template([
-		'<div id="<?= id ?>">',
-			'<ul class="<?= class ?>">',
-				'<? for (var i=0; i<items.length; i++) { ?>',
-					'<li><?= items[i] ?></li>',
-				'<? } ?>',
+#### Compile A Template For Repeated Use
+
+Using an RML type syntax:
+
+	var tpl = RML.compile(
+		RML.div({
+			id: "${id}",
+			content: RML.ul({
+				_class:"${class}",
+				content: "${items}"
+			})
+		})
+	);
+	
+Or if you like to write the HTML snippet yourself:
+
+	var tpl = RML.compile([
+		'<div id="${id}">',
+			'<ul class="${class}">',
+				'${items}',
 			'</ul>',
 		'</div>'
 	]);
 	
 'Compiles' the template into a callable function. Now you can pass it a data object:
 
-	tpl({id: 'foo', class: 'bar', items: ['spam', 'eggs']});
+	tpl({id: 'foo', class: 'bar', items: (function() {
+		var data = ['spam', 'eggs'],
+		items = [];
+		data.forEach(function(v) {
+			items.push(RML.li(v));
+		});
+		return items.join('');
+		}())
+	});
 	
 	=> <div id="foo"><ul class="bar"><li>spam</li><li>eggs</li></ul></div>
 	
@@ -33,8 +57,57 @@ Of course you could just do a 'one-shot' template by passing the data object alo
 	
 	=> <span id="myID">Hello Span!</span>
 
-I'm using `<? ?>` as the delimiters but you can change that in the `templatePrefs` object 
-(just be sure to update the `re` to match).
+#### Cache It If You Want
+
+Often you can maximize efficiency by having RML 'cache' a template function
+that you might want to call from another script. This method both compiles the
+function and stores it in the RML.cached namespace for you to call with a data
+object:
+
+	RML.cache('myTpl', RML.div({
+		id: "${id}",
+		content: "${stuff}"
+		})
+	);
+	
+Then whenever you want:
+
+	RML.cached.myTpl({id: 'myId', stuff: 'some stuff'});
+	
+	=> "<div id="myId">some stuff</div>"
+	
+#### Arrays As Data Objects Too
+
+In any of the above examples an array could have been used as the data object,
+just make sure to change your variable placeholders to array index values 
+instead of object keys:
+
+	RML.cache('myTpl', RML.div({
+		id: "${0}",
+		content: "${1}"
+		})
+	);
+	
+	RML.cached.myTpl(['myId', 'some stuff']);
+
+#### The strSub() 
+
+A nice little bonus that came along with the variable replacement
+algorithm is the strSub() method. Pass in any string with variable
+placeholders to either compile a callable function or return a 'one-shot'
+by passing a data object with it:
+
+	RML.strSub('This is ${1} kinda ${0}', ['party!','my'])
+	
+	=> "This is my kinda party!"
+	
+These can be cached as well:
+
+	RML.cache('aString', 'This is ${1} kinda ${0}')
+	
+	RML.cached.aString(['party','my'])
+	
+You get the idea...
  
 ### Render A Tag, Any Tag...
 

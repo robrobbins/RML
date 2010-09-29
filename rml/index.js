@@ -6,7 +6,6 @@ var RML = module.exports = (function() {
     ARRAY = '[object Array]',
     FUNCTION = '[object Function]',
     OBJECT = '[object Object]',
-    REGESCAPE = function(s) {return s.replace(/([.*+?^${}()|[\]\/\\])/g, '\\$1');},
     //function is passed the string array
     //pre-join, a string arg, and the tag type (0,1,2)
     factory = function(tstr, arg, tt, dl) {
@@ -73,33 +72,31 @@ var RML = module.exports = (function() {
                 tstr.push('</', t, '>');
         }
         return tstr.join('');
-    },
-    templatePrefs = {
-        start : '<?',
-        end : '?>',
-        re : /<\?=(.+?)\?>/g
     };
     return {
-        //shortcut methods to append to RML
-        tags: {
-            'a': 0,'b': 0,'br': 1,
-            'canvas': 0,'code': 0,'div': 0,
-            'dl': 0, 'dd': 0, 'dt': 0,
-            'em': 0,'form': 0,'h1': 0,
-            'h2': 0,'h3': 0,'h4': 0,
-            'hr': 1,'i': 0,'img': 0,
-            'input': 1,'li': 0,'link': 1,
-            'ol': 0,'p': 0,'pre': 0,
-            'script': 0,'select': 0, 'strong': 0,
-            'span': 0,'table': 0,'tbody': 0,
-            'td': 0,'textarea': 0,'th': 0,
-            'thead': 0,'tr': 0,'ul': 0
-        },
+        // Store a compiled template function in the cached object
+		cache: function(k, str) {
+			this.cached[k] = this.compile(str);
+		},
+		// the stored functions should be called with data objects
+		// RML.cached.foo({bar: 'Bar'})
+		cached: {},
+		// Used with RML.tag() calls to return a function which expects
+		// to be called with a data object via the curried template().
+		compile: function(str) {
+			return this.template(str);
+		},
         //items which should NOT appear in the
         //attributes of a tag. Items set to true
         //will be excluded
         filter: {
             'content': true
+        },
+		//convenience method for hasOwnProperty
+        //@param obj is the object in question
+        //@param key is the key to look for
+        has: function(obj, key) {
+            return obj && obj.hasOwnProperty && obj.hasOwnProperty(key);
         },
         //absract out the string replacement bit.
         rsub: function(k,v) {
@@ -111,12 +108,6 @@ var RML = module.exports = (function() {
             return v ? str.replace('%1', k).replace('%2', v) :
                 str.replace('%1', k);
         },
-        //convenience method for hasOwnProperty
-        //@param obj is the object in question
-        //@param key is the key to look for
-        has: function(obj, key) {
-            return obj && obj.hasOwnProperty && obj.hasOwnProperty(key);
-        },
         //method to abstract over the typical operation
         //of joining or (worse) concatonating sibling elements
         siblings: function() {
@@ -124,6 +115,13 @@ var RML = module.exports = (function() {
             var args = SLICE.call(arguments, 0);
             return args.join('');
         },
+		// Pass in a string to have variable replacement done
+		// with the template() algorithm
+		// strSub('${foo} ${bar}', {foo: "Hello", bar: "world!"})
+		// strSub('${0} ${1}', ["Hello", "world!"])
+		strSub: function(str, data) {
+			return this.template(str, data);
+		},
         //tag names are methods appended to the RML object
         //which will return a markup string
         //@param arg will contain the attributes and content of the
@@ -143,30 +141,34 @@ var RML = module.exports = (function() {
             return TOSTRING.call(arg) !== OBJECT ? factory(tstr, arg, tt, dl) :
                 handleObj(tstr, arg, tt, this, dl);
         },
-        // inspiration: [John Resig, Rick Strahl, Underscore.js]
+		//shortcut methods to append to RML
+        tags: {
+            'a': 0,'b': 0,'br': 1,
+            'canvas': 0,'code': 0,'div': 0,
+            'dl': 0, 'dd': 0, 'dt': 0,
+            'em': 0,'form': 0,'h1': 0,
+            'h2': 0,'h3': 0,'h4': 0,
+            'hr': 1,'i': 0,'img': 0,
+            'input': 1,'li': 0,'link': 1,
+            'ol': 0,'p': 0,'pre': 0,
+            'script': 0,'select': 0, 'strong': 0,
+            'span': 0,'table': 0,'tbody': 0,
+            'td': 0,'textarea': 0,'th': 0,
+            'thead': 0,'tr': 0,'ul': 0
+        },
         template: function(tpl, data) {
             // str passed in as an array? I do...
             var str = TOSTRING.call(tpl) === ARRAY ? tpl.join('') : tpl,
-            pref = templatePrefs,
-            _em = ["'(?=[^",pref.end.substr(0, 1),"]*",REGESCAPE(pref.end),")"].join(''),
-            em = new RegExp(_em,"g"),
-            _fn = [
-                'var p=[],print=function(){p.push.apply(p,arguments);};',
-                'with(obj||{}){p.push(\'',
-                str.replace(/\r/g, '\\r')
-                .replace(/\n/g, '\\n')
-                .replace(/\t/g, '\\t')
-                .replace(em,"✄")
-                .split("'").join("\\'")
-                .split("✄").join("'")
-                .replace(pref.re, "',$1,'")
-                .split(pref.start).join("');")
-                .split(pref.end).join("p.push('"),
-                "');}return p.join('');"
-            ],    
-            fn = new Function('obj', _fn.join(''));
-            // you can return a compiled tpl or a 'one-shot' str
-            return data ? fn(data) : fn;
+			fn = function(obj) {
+				return str.replace(/\$\{(.+?)\}/g, 
+					function(match, key) {
+						return obj[key];
+					}
+				);
+			};
+			// curry the method, provides the ability to
+			// return a function which waits for a data source
+			return data ? fn(data) : fn;
         }
     };
 }());
@@ -187,5 +189,5 @@ var RML = module.exports = (function() {
 }());
 
 exports.name = 'Righteous Markup Lever';
-exports.summary = 'Returns HTML markup via methods appended to rml';
+exports.summary = 'Templating and markup generation';
 exports.requires = [];

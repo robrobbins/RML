@@ -179,20 +179,18 @@ var RML = (function() {
 		return TOSTRING.call(arg) !== OBJECT ? factory(tstr, arg, tt, dl) :
 			handleObj(tstr, arg, tt, this, dl);
 	},
-	//shortcut methods to append to RML
+	// shortcut methods for elements
 	tags: {
-		'a': 0,'b': 0,'br': 1,
-		'canvas': 0,'code': 0,'div': 0,
-		'dl': 0, 'dd': 0, 'dt': 0,
-		'em': 0,'form': 0,'h1': 0,
-		'h2': 0,'h3': 0,'h4': 0,
-		'hr': 1,'i': 0,'img': 0,
-		'input': 1,'li': 0,'link': 1,
-		'ol': 0,'p': 0,'pre': 0,
-		'script': 0,'select': 0, 'strong': 0,
-		'span': 0,'table': 0,'tbody': 0,
-		'td': 0,'textarea': 0,'th': 0,
-		'thead': 0,'tr': 0,'ul': 0
+		'a':0,'article':0,'aside':0,'b':0,'blockquote':0,'body':0,'br':1,
+		'button':0,'canvas':0,'code':0,'datalist':0,'dd':0,'div':0,'dl':0,'dt':0,
+		'em':0,'embed':2,'figcaption':0,'figure':0,'footer':0,'form':0,'h1':0,
+		'h2':0,'h3':0,'h4':0,'h5':0,'h6':0,'head':0,'header':0,'hgroup':0,'hr':1,
+		'html':0,'i':0,'iframe':0,'img':0,'input':1,'kbd':0,'label':0,'legend':0,
+		'li':0,'link':2,'mark':0,'menu':0,'meta':0,'nav':0,'noscript':0,'object':0,
+		'ol':0,'optgroup':0,'option':0,'p':0,'param':2,'pre':0,'samp':0,'script':0,
+		'section':0,'select':0,'select':0,'small':0,'source':2,'span':0,'strong':0,
+		'style':0,'sub':0,'sup':0,'table':0,'tbody':0,'td':0,'textarea':0,'tfoot':0,
+		'th': 0,'thead':0,'title':0,'tr':0,'ul':0,'var':0,'video':0,'wbr':2
 	},
 	template: function(tpl, data) {
 		// str passed in as an array? I do...
